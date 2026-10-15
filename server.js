@@ -3,7 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const WorkExperience = require("./models/WorkExperience");
+const MenuItem = require("./models/MenuItem");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,42 +12,37 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(cors());
 
-// Hämta alla arbetslivserfarenheter
-app.get("/api/workexperience", async (req, res) => {
+// Hämta alla maträtter från restaurangens meny
+app.get("/api/menu", async (req, res) => {
     try {
-        const experiences = await WorkExperience.find()
-            .sort({ startdate: -1 });
+        const menuItems = await MenuItem.find()
+            .sort({ category: 1, name: 1 });
 
-        res.status(200).json(experiences);
+        res.status(200).json(menuItems);
 
     } catch (error) {
         console.error(error);
 
         res.status(500).json({
-            error: "Kunde inte hämta arbetslivserfarenheter."
+            error: "Kunde inte hämta restaurangens meny."
         });
     }
 });
 
-// Lägg till en ny arbetslivserfarenhet
-app.post("/api/workexperience", async (req, res) => {
+// Lägg till en ny maträtt
+app.post("/api/menu", async (req, res) => {
     const {
-        companyname,
-        jobtitle,
-        location,
-        startdate,
-        enddate,
-        description
+        name,
+        description,
+        price,
+        category
     } = req.body || {};
 
-    // Kontrollera att alla fält innehåller text
+    // Kontrollera endast textfälten
     const fields = {
-        companyname,
-        jobtitle,
-        location,
-        startdate,
-        enddate,
-        description
+        name,
+        description,
+        category
     };
 
     for (const [key, value] of Object.entries(fields)) {
@@ -58,37 +53,43 @@ app.post("/api/workexperience", async (req, res) => {
         }
     }
 
+    // Kontrollera att priset är ett giltigt tal
+    if (typeof price !== "number" ||
+        !Number.isFinite(price) ||
+        price < 0) {
+        return res.status(400).json({
+            error: "Priset måste vara ett giltigt tal som inte är negativt."
+        });
+    }
+
 
     try {
-        // Skapa ett nytt dokument i MongoDB
-        const experience = await WorkExperience.create(
-            Object.fromEntries(
-                Object.entries(fields).map(([key, value]) => [
-                    key,
-                    value.trim()
-                ])
-            )
-        );
+        const menuItem = await MenuItem.create({
+            name: name.trim(),
+            description: description.trim(),
+            price,
+            category: category.trim()
+        });
 
         res.status(201).json({
-            message: "Arbetslivserfarenheten har lagts till.",
-            id: experience._id
+            message: "Maträtten har lagts till.",
+            id: menuItem._id
         });
 
     } catch (error) {
         console.error(error);
 
         res.status(500).json({
-            error: "Kunde inte spara arbetsplatslivserfarenheten."
+            error: "Kunde inte lägga till maträtten."
         });
     }
 });
 
-// Uppdatera en befintlig arbetslivserfarenhet
-app.put("/api/workexperience/:id", async (req, res) => {
+// Uppdatera en befintlig maträtt
+app.put("/api/menu/:id", async (req, res) => {
     const id = req.params.id;
 
-    // Kontrollera att MongoDB-ID är giltigt
+    // Kontrollera att ID är giltigt
     if (!mongoose.isValidObjectId(id)) {
         return res.status(400).json({
             error: "Ogiltigt ID."
@@ -96,22 +97,17 @@ app.put("/api/workexperience/:id", async (req, res) => {
     }
 
     const {
-        companyname,
-        jobtitle,
-        location,
-        startdate,
-        enddate,
-        description
+        name,
+        description,
+        price,
+        category
     } = req.body || {};
 
-    // Kontrollera att alla fält innehåller text
+    // Kontrollera textfälten
     const fields = {
-        companyname,
-        jobtitle,
-        location,
-        startdate,
-        enddate,
-        description
+       name,
+       description,
+       category
     };
 
     for (const [key, value] of Object.entries(fields)) {
@@ -122,47 +118,54 @@ app.put("/api/workexperience/:id", async (req, res) => {
         }
     }
 
+    // Kontrollera priset
+    if (typeof price !== "number" ||
+        !Number.isFinite(price) ||
+        price < 0) {
+            return res.status(400).json({
+                error: "Priset måste vara ett giltigt tal som inte är negativt."
+            });
+        }
+
     try {
-        // Uppdatera dokumentet i MongoDB
-        const experience = await WorkExperience.findByIdAndUpdate(
+        const menuItem = await MenuItem.findByIdAndUpdate(
             id,
-            Object.fromEntries(
-                Object.entries(fields).map(([key, value]) => [
-                    key,
-                    value.trim()
-                ])
-            ),
+            {
+                name: name.trim(),
+                description: description.trim(),
+                price,
+                category: category.trim()
+            },
             {
                 returnDocument: "after",
                 runValidators: true
             }
         );
 
-        // Kontrollera om dokumentet finns
-        if (!experience) {
+        if (!menuItem) {
             return res.status(404).json({
-                error: "Arbetslivserfarenheten hittades inte."
+                error: "Maträtten hittades inte."
             });
         }
 
         res.status(200).json({
-            message: "Arbetslivserfarenheten har uppdaterats."
+            message: "Maträtten har uppdaterats."
         });
 
     } catch (error) {
         console.error(error);
 
         res.status(500).json({
-            error: "Kunde inte uppdatera arbetslivserfarenheten."
+            error: "Kunde inte uppdatera maträtten."
         });
     }
 });
 
-// Radera en arbetslivserfarenhet
-app.delete("/api/workexperience/:id", async (req, res) => {
+// Radera en maträtt
+app.delete("/api/menu/:id", async (req, res) => {
     const id = req.params.id;
 
-    // Kontrollera att MongoDB-ID är giltigt
+    // Kontrollera att ID är giltigt
     if (!mongoose.isValidObjectId(id)) {
         return res.status(400).json({
             error: "Ogiltigt ID."
@@ -170,25 +173,24 @@ app.delete("/api/workexperience/:id", async (req, res) => {
     }
 
     try {
-        // Hitta och radera dokumentet i MongoDB
-        const experience = await WorkExperience.findByIdAndDelete(id);
+        // Hitta och radera maträtten i MongoDB
+        const menuItem = await MenuItem.findByIdAndDelete(id);
 
-        // Kontrollera om dokumentet finns
-        if (!experience) {
+        if (!menuItem) {
             return res.status(404).json({
-                error: "Arbetslivserfarenheten hittades inte."
+                error: "Maträtten hittades inte."
             });
         }
 
         res.status(200).json({
-            message: "Arbetslivserfarenheten har raderats."
+            message: "Maträtten har raderats."
         });
 
     } catch (error) {
         console.error(error);
 
         res.status(500).json({
-            error: "Kunde inte radera arbetslivserfarenheten."
+            error: "Kunde inte radera maträtten."
         });
     }
 });
