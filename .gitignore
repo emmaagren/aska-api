@@ -1,0 +1,15 @@
+# Installerade paket
+node_modules/
+
+# Miljövariabler och hemligheter
+.env
+.env.*
+!.env.example
+
+# Loggfiler
+*.log
+npm-debug.log*
+
+# Systemfiler
+.DS_Store
+Thumbs.db
