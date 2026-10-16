@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const MenuItem = require("./models/MenuItem");
+const authenticateToken =  require("./middleware/auth");
 const authRoutes = require("./routes/authRoutes");
 
 const app = express();
