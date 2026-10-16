@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const MenuItem = require("./models/MenuItem");
+const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,6 +12,9 @@ const PORT = process.env.PORT || 3000;
 // Middleware för JSON och anrop från andra domäner
 app.use(express.json());
 app.use(cors());
+
+// Routes för administratörens inloggning
+app.use("/api/auth", authRoutes);
 
 // Hämta alla maträtter från restaurangens meny
 app.get("/api/menu", async (req, res) => {
