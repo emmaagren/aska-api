@@ -35,7 +35,7 @@ app.get("/api/menu", async (req, res) => {
 });
 
 // Lägg till en ny maträtt
-app.post("/api/menu", async (req, res) => {
+app.post("/api/menu", authenticateToken, async (req, res) => {
     const {
         name,
         description,
@@ -91,7 +91,7 @@ app.post("/api/menu", async (req, res) => {
 });
 
 // Uppdatera en befintlig maträtt
-app.put("/api/menu/:id", async (req, res) => {
+app.put("/api/menu/:id", authenticateToken, async (req, res) => {
     const id = req.params.id;
 
     // Kontrollera att ID är giltigt
@@ -167,7 +167,7 @@ app.put("/api/menu/:id", async (req, res) => {
 });
 
 // Radera en maträtt
-app.delete("/api/menu/:id", async (req, res) => {
+app.delete("/api/menu/:id", authenticateToken, async (req, res) => {
     const id = req.params.id;
 
     // Kontrollera att ID är giltigt
