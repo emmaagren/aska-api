@@ -126,9 +126,15 @@ Anslutningen till MongoDB Atlas, hämtning av menyn, administratörsinloggning o
 
 ## Publicering
 
-Backend-API:et publiceras separat från frontend.
+Backend-API:et är publicerat på Render och använder MongoDB Atlas som databas.
 
-Länken till det publicerade API:et läggs till när publiceringen är klar.
+**API-adress:** https://aska-api-nfxc.onrender.com
+
+**Publik meny:** https://aska-api-nfxc.onrender.com/api/menu
+
+**Frontend:** https://restaurang-aska.netlify.app/
+
+API:et hanterar hämtning av maträtter samt autentiserade anrop för att lägga till, redigera och radera maträtter via administrationspanelen.
 
 ## Kurs
 
